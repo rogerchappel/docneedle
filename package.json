@@ -24,7 +24,7 @@
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "check": "tsc --noEmit",
     "build": "npm run clean && tsc",
-    "test": "node --test test/*.test.js",
+    "test": "npm run build && node --test test/*.test.js",
     "smoke": "npm run build && node ./bin/docneedle.js inspect test/fixtures/agent-workspace --output .tmp/smoke && node ./bin/docneedle.js search test/fixtures/agent-workspace escalation --limit 2 --json && node ./bin/docneedle.js pack test/fixtures/agent-workspace --query onboarding --output .tmp/smoke/onboarding-pack.md"
   },
   "keywords": [
