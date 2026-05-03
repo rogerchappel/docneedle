@@ -65,7 +65,7 @@ function findFirstLine(content: string, terms: string[]): { line: number; snippe
   let bestScore = -1;
   lines.forEach((line, index) => {
     const lower = line.toLowerCase();
-    const score = terms.reduce((sum, term) => sum + (lower.includes(term) ? 1 : 0), 0);
+    const score = terms.reduce((sum, term, termIndex) => sum + (lower.includes(term) ? terms.length - termIndex : 0), 0);
     if (score > bestScore) {
       bestScore = score;
       bestIndex = index;
