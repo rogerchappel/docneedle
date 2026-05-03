@@ -11,60 +11,34 @@ permissions:
   contents: read
 
 jobs:
-  repository-hygiene:
-    name: Repository hygiene
+  test:
+    name: Test and build
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate required project files
-        run: |
-          set -euo pipefail
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
 
-          required_files=(
-            README.md
-            LICENSE
-          )
+      - name: Install dependencies
+        run: npm ci
 
-          for file in "${required_files[@]}"; do
-            test -s "$file"
-          done
+      - name: Type check
+        run: npm run check
 
-      - name: Validate markdown files are not empty
-        run: |
-          set -euo pipefail
+      - name: Test
+        run: npm test
 
-          markdown_count=0
+      - name: Build
+        run: npm run build
 
-          while IFS= read -r -d '' file; do
-            markdown_count=$((markdown_count + 1))
-            test -s "$file"
-          done < <(find . -type f -name '*.md' -not -path './.git/*' -print0)
+      - name: Smoke
+        run: npm run smoke
 
-          if [ "$markdown_count" -eq 0 ]; then
-            echo "No markdown files found."
-            exit 1
-          fi
-
-      - name: Run optional Node checks
-        run: |
-          set -euo pipefail
-
-          if [ ! -f package.json ]; then
-            echo "No package.json found; skipping Node checks."
-            echo "TODO: add install, lint, test, typecheck, or build commands when this template becomes an app or package."
-            exit 0
-          fi
-
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-
-          npm run lint --if-present
-          npm test --if-present
-          npm run typecheck --if-present
-          npm run build --if-present
+      - name: Validate repository
+        run: bash scripts/validate.sh
