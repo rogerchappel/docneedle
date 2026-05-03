@@ -1,0 +1,5 @@
+Onboarding checklist
+
+1. Read README.md.
+2. Run docneedle inspect against the project docs.
+3. Search for escalation before asking a human.
