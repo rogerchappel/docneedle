@@ -1,58 +1,26 @@
 # Security Policy
 
-## Supported Versions
+`docneedle` is intentionally local-first. It should not make network calls, collect telemetry, read credentials, or publish generated output without an explicit user action.
 
-Replace this section with the supported versions for `docneedle`.
+## Supported versions
 
-Example:
+The project is pre-1.0. Security fixes target the latest `main` branch until tagged releases begin.
 
-```md
-| Version | Supported |
-| --- | --- |
-| .x | Yes |
-| < .0 | No |
-```
+## Reporting a vulnerability
 
-If the project does not publish versioned releases yet, say that clearly.
+Please do not open a public issue with private documents, credentials, generated packs, or exploit details.
 
-## Reporting a Vulnerability
+Instead, contact the repository owner privately through GitHub. Include:
 
-Please do not report suspected vulnerabilities in public issues, pull requests, or discussions.
+- the affected version or commit,
+- the command you ran,
+- the smallest safe reproduction you can share,
+- whether private file content could be exposed.
 
-Ask maintainers for the private security reporting path before sharing details.
+## Security expectations for contributors
 
-If no private reporting path exists yet, ask maintainers through public project channels for a private reporting path. Do not include exploit details, secrets, personal data, or sensitive technical details in public messages.
-
-## What to Include
-
-When a private reporting path is available, include:
-
-- A clear description of the issue.
-- Affected versions, files, packages, workflows, or configuration.
-- Steps to reproduce, proof of concept, or attack scenario when safe to share.
-- Potential impact.
-- Suggested mitigation, if known.
-
-## Response Expectations
-
-Maintainers review good-faith reports as capacity allows.
-
-Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `docneedle` explicitly provides them.
-
-## Scope
-
-In scope:
-
-- Vulnerabilities in docneedle.
-- Insecure default configuration shipped by this project.
-- CI, release, or dependency guidance maintained by this project.
-
-Out of scope:
-
-- General support requests.
-- Requests for guaranteed maintenance timelines.
-- Issues in unrelated downstream projects.
-
-## Disclosure
-
-Coordinate disclosure with maintainers before publishing vulnerability details.
+- No hidden network calls or telemetry.
+- No credential discovery features.
+- No automatic publishing or uploading.
+- Keep file scanning allowlisted to text-like documentation formats unless a change has clear tests and safety notes.
+- Prefer fixtures over real private documents in tests and issues.

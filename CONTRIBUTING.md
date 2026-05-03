@@ -1,79 +1,37 @@
 # Contributing
 
-Thanks for helping improve `docneedle`.
+Thanks for helping make `docneedle` sharper. The project values small, reviewable changes that keep the tool local-first and easy to trust.
 
-This project values small, reviewable contributions with clear verification.
+## Development
 
-## Issues
-
-Before opening an issue:
-
-- Search existing issues.
-- Confirm the issue applies to `docneedle`.
-- Include enough context for maintainers to understand or reproduce the request.
-
-Bug reports should include:
-
-- What happened.
-- What you expected.
-- Steps to reproduce.
-- Relevant logs, screenshots, or files.
-- The smallest verification step that demonstrates the issue.
-
-Feature requests should include:
-
-- The use case.
-- Why the current project does not solve it.
-- Risks or compatibility concerns.
-- Suggested files or behavior that may need to change.
-
-## Pull Requests
-
-Pull requests should:
-
-- Focus on one reviewable intent.
-- Use a branch.
-- Follow Conventional Commits.
-- Include tests or verification appropriate to the change.
-- Update documentation when behavior or usage changes.
-- Avoid unrelated formatting or dependency churn.
-- Avoid secrets, private contact details, and project-specific sensitive information.
-
-## Review Pack
-
-Use this format for meaningful changes:
-
-```md
-## Review Pack
-Repo:
-Branch:
-PR:
-Task:
-Status: done / blocked / needs review
-Summary:
-Commits:
-Files changed:
-Verification:
-Risk level:
-Rollback plan:
-Human decision needed:
-Next recommended task:
+```sh
+npm install
+npm test
+npm run check
+npm run build
+npm run smoke
+bash scripts/validate.sh
 ```
 
-## Verification
+## Good first changes
 
-Every contribution should include verification.
+- Improve fixture coverage for realistic docs/runbooks/agent-memory folders.
+- Refine ranking and snippets while keeping results deterministic.
+- Improve README examples or safety notes.
+- Add output formats that are useful for local agent workflows.
 
-Examples:
+## Guardrails
 
-- Documentation: inspect rendered Markdown or review the diff.
-- Tests: run the targeted test command.
-- Types: run the project typecheck.
-- Build: run the smallest build command that covers the change.
-- Manual QA: provide exact steps and observed result.
+- Do not add telemetry, analytics, remote indexing, credential scraping, or surprise network calls.
+- Do not include private user documents in tests.
+- Keep CLI errors direct and actionable.
+- Prefer standard-library code unless a dependency clearly earns its weight.
 
-If verification cannot be run, explain why and provide the exact command maintainers should run.
+## Pull requests
 
-## Maintainer Review
+Please include:
 
-Maintainers may request narrower scope, clearer verification, additional tests, or safer defaults before merging.
+- what changed,
+- why it matters,
+- tests/smoke commands you ran,
+- any safety or compatibility tradeoffs.
