@@ -61,8 +61,17 @@ function countOccurrences(text: string, term: string): number {
 
 function findFirstLine(content: string, terms: string[]): { line: number; snippet: string } {
   const lines = content.split(/\r?\n/);
-  const index = lines.findIndex((line) => terms.some((term) => line.toLowerCase().includes(term)));
-  const lineIndex = index === -1 ? 0 : index;
+  let bestIndex = 0;
+  let bestScore = -1;
+  lines.forEach((line, index) => {
+    const lower = line.toLowerCase();
+    const score = terms.reduce((sum, term) => sum + (lower.includes(term) ? 1 : 0), 0);
+    if (score > bestScore) {
+      bestScore = score;
+      bestIndex = index;
+    }
+  });
+  const lineIndex = bestScore <= 0 ? 0 : bestIndex;
   const start = Math.max(0, lineIndex - 1);
   const end = Math.min(lines.length, lineIndex + 2);
   const snippet = lines.slice(start, end).join(' ').replace(/\s+/g, ' ').trim();
