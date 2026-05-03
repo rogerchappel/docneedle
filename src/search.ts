@@ -73,7 +73,7 @@ function findFirstLine(content: string, terms: string[]): { line: number; snippe
   });
   const lineIndex = bestScore <= 0 ? 0 : bestIndex;
   const start = Math.max(0, lineIndex - 1);
-  const end = Math.min(lines.length, lineIndex + 2);
+  const end = Math.min(lines.length, lineIndex + 4);
   const snippet = lines.slice(start, end).join(' ').replace(/\s+/g, ' ').trim();
   return { line: lineIndex + 1, snippet: snippet.slice(0, 320) };
 }
