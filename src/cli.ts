@@ -1,3 +1,4 @@
+import { watch } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { buildManifest, publicManifest } from './indexer.js';
@@ -28,12 +29,21 @@ Safety: docneedle only reads local text/Markdown-like files and writes outputs y
 `;
 
 export async function runCli(argv: string[], io = { stdout: process.stdout, stderr: process.stderr }): Promise<void> {
-  const args = parseArgs(argv);
-  if (!args.command || hasFlag(args, 'help') || args.command === 'help') {
+  if (argv.length === 0 || argv.includes('--help') || argv.includes('-h')) {
     io.stdout.write(HELP);
     return;
   }
-  if (hasFlag(args, 'version') || args.command === 'version') {
+  if (argv.includes('--version') || argv.includes('-v')) {
+    const pkg = JSON.parse(await fs.readFile(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
+    io.stdout.write(`${pkg.version}\n`);
+    return;
+  }
+  const args = parseArgs(argv);
+  if (!args.command || args.command === 'help') {
+    io.stdout.write(HELP);
+    return;
+  }
+  if (args.command === 'version') {
     const pkg = JSON.parse(await fs.readFile(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
     io.stdout.write(`${pkg.version}\n`);
     return;
@@ -103,7 +113,7 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
   if (hasFlag(args, 'watch')) {
     stdout.write('Watching for changes. Press Ctrl+C to stop.\n');
     await new Promise<void>(() => {
-      fs.watch(manifest.root, { recursive: true }, async () => {
+      watch(manifest.root, { recursive: true }, async () => {
         const nextManifest = await buildManifest({ root }).catch((error: unknown) => {
           stdout.write(`watch rebuild failed: ${error instanceof Error ? error.message : String(error)}\n`);
           return undefined;
