@@ -25,7 +25,9 @@
     "check": "tsc --noEmit",
     "build": "npm run clean && tsc",
     "test": "npm run build && node --test test/*.test.js",
-    "smoke": "npm run build && node ./bin/docneedle.js inspect test/fixtures/agent-workspace --output .tmp/smoke && node ./bin/docneedle.js search test/fixtures/agent-workspace escalation --limit 2 --json && node ./bin/docneedle.js pack test/fixtures/agent-workspace --query onboarding --output .tmp/smoke/onboarding-pack.md"
+    "smoke": "npm run build && node ./bin/docneedle.js inspect test/fixtures/agent-workspace --output .tmp/smoke && node ./bin/docneedle.js search test/fixtures/agent-workspace escalation --limit 2 --json && node ./bin/docneedle.js pack test/fixtures/agent-workspace --query onboarding --output .tmp/smoke/onboarding-pack.md",
+    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke"
   },
   "keywords": [
     "local-first",
