@@ -56,7 +56,7 @@ jobs:
         run: cat release-notes-preview.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload release notes preview
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-notes-preview
           path: release-notes-preview.md
