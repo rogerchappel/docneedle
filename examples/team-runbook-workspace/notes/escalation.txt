@@ -1,0 +1,5 @@
+Escalation path:
+
+1. Capture the failing command and exact output.
+2. Link the release checklist section that failed.
+3. Ask for maintainer review before rerunning publish or deploy steps.
