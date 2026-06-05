@@ -35,6 +35,8 @@ docneedle search . "release escalation" --limit 5
 docneedle pack . --query "onboarding checklist" --output .docneedle/onboarding-pack.md
 ```
 
+For a public, synthetic walkthrough, use [`examples/team-runbook-workspace`](examples/team-runbook-workspace) with [`docs/tutorials/pack-release-context.md`](docs/tutorials/pack-release-context.md).
+
 ## Commands
 
 ### `inspect <dir>`
