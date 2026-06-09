@@ -18,7 +18,8 @@
     "dist",
     "bin",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
@@ -45,5 +46,13 @@
   "devDependencies": {
     "@types/node": "latest",
     "typescript": "latest"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/docneedle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/docneedle/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/docneedle#readme"
 }
