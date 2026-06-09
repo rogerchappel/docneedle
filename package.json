@@ -45,5 +45,13 @@
   "devDependencies": {
     "@types/node": "latest",
     "typescript": "latest"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/docneedle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/docneedle/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/docneedle#readme"
 }
