@@ -99,6 +99,18 @@ bash scripts/validate.sh
 node ./bin/docneedle.js search test/fixtures/agent-workspace escalation --json
 ```
 
+## Development
+
+Run the same checks maintainers use before opening a PR:
+
+```sh
+npm test
+npm run check
+npm run build
+npm run smoke
+npm run package:smoke
+npm run release:check
+```
 ## Contributing
 
 Small, boring, well-tested changes are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
