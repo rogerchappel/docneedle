@@ -37,6 +37,14 @@ docneedle pack . --query "onboarding checklist" --output .docneedle/onboarding-p
 
 For a public, synthetic walkthrough, use [`examples/team-runbook-workspace`](examples/team-runbook-workspace) with [`docs/tutorials/pack-release-context.md`](docs/tutorials/pack-release-context.md).
 
+For a one-command version of that walkthrough, run:
+
+```sh
+bash demo/run-team-runbook-pack.sh
+```
+
+It writes a manifest, search transcript, and source-linked agent pack under `.tmp/demo-team-runbook-pack/`. A promotion thread draft lives in [`docs/promo/demo-thread.md`](docs/promo/demo-thread.md).
+
 ## Commands
 
 ### `inspect <dir>`
