@@ -21,7 +21,7 @@ const HELP = `docneedle — local-first search for docs, notes, and agent memory
 Usage:
   docneedle inspect <dir> [--output <dir>] [--format json|markdown] [--watch]
   docneedle search <dir> <query...> [--limit <n>] [--json]
-  docneedle pack <dir> [--query <text>] [--output <file>] [--format markdown|json]
+  docneedle pack <dir> [--query <text>] [--output <file>] [--format markdown|json] [--limit <n>]
 
 Examples:
   docneedle inspect ./docs --output .docneedle

@@ -26,6 +26,8 @@ test('CLI help is friendly', async () => {
   const result = await run(['--help']);
   assert.equal(result.code, 0);
   assert.match(result.stdout, /local-first search/);
+  assert.match(result.stdout, /search .* \[--limit <n>\]/);
+  assert.match(result.stdout, /pack .* \[--format markdown\|json\] \[--limit <n>\]/);
 });
 
 test('CLI rejects unsupported output formats', async () => {

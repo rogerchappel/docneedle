@@ -57,6 +57,7 @@ docneedle inspect ./docs --output .docneedle
 ```
 
 Use `--watch` to rebuild the manifest when files change. The watcher stays local and only writes the manifest path you requested.
+The `--format` option accepts `json` or `markdown`.
 
 ### `search <dir> <query...>`
 
@@ -66,6 +67,8 @@ Builds an in-memory index and prints ranked snippets.
 docneedle search ./docs "branch protection" --json
 ```
 
+Use `--limit <n>` with a positive integer to cap the number of results.
+
 ### `pack <dir>`
 
 Exports a compact context pack for agent handoff.
@@ -74,6 +77,8 @@ Exports a compact context pack for agent handoff.
 docneedle pack . --query "release checklist" --output release-pack.md
 docneedle pack . --format json --output release-pack.json
 ```
+
+The `--format` option accepts `markdown` or `json`. Use `--limit <n>` with a positive integer to cap query hits in the pack.
 
 ## Safety boundaries
 
