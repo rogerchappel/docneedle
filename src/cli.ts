@@ -13,6 +13,9 @@ interface ParsedArgs {
   flags: Map<string, string | boolean>;
 }
 
+const OUTPUT_FORMATS = ['json', 'markdown'] as const;
+type OutputFormat = (typeof OUTPUT_FORMATS)[number];
+
 const HELP = `docneedle — local-first search for docs, notes, and agent memory
 
 Usage:
@@ -96,7 +99,7 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
   const root = args.positionals[0];
   if (!root) throw new Error('inspect requires a directory');
   const output = stringFlag(args, 'output');
-  const format = stringFlag(args, 'format') ?? 'json';
+  const format = outputFormatFlag(args, 'json');
   const manifest = await buildManifest({ root });
   const safeManifest = publicManifest(manifest);
   const body = format === 'markdown' ? renderManifestMarkdown(manifest) : `${JSON.stringify(safeManifest, null, 2)}\n`;
@@ -131,8 +134,7 @@ async function search(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<voi
   const root = args.positionals[0];
   const query = args.positionals.slice(1).join(' ');
   if (!root || !query) throw new Error('search requires a directory and query');
-  const limit = Number(stringFlag(args, 'limit') ?? 10);
-  if (!Number.isFinite(limit) || limit <= 0) throw new Error('--limit must be a positive number');
+  const limit = positiveIntegerFlag(args, 'limit', 10);
   const manifest = await buildManifest({ root });
   const result = searchManifest(manifest, { query, limit });
   stdout.write(hasFlag(args, 'json') ? `${JSON.stringify(result, null, 2)}\n` : renderSearchMarkdown(result));
@@ -143,8 +145,8 @@ async function pack(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<void>
   if (!root) throw new Error('pack requires a directory');
   const query = stringFlag(args, 'query');
   const output = stringFlag(args, 'output');
-  const format = stringFlag(args, 'format') ?? (output?.endsWith('.json') ? 'json' : 'markdown');
-  const limit = Number(stringFlag(args, 'limit') ?? 8);
+  const format = outputFormatFlag(args, output?.endsWith('.json') ? 'json' : 'markdown');
+  const limit = positiveIntegerFlag(args, 'limit', 8);
   const packData = await buildAgentPack({ root, query, limit });
   const body = format === 'json' ? `${JSON.stringify(packData, null, 2)}\n` : renderPackMarkdown(packData);
   if (output) {
@@ -163,4 +165,20 @@ function stringFlag(args: ParsedArgs, name: string): string | undefined {
   const value = args.flags.get(name);
   if (value === undefined || value === true) return undefined;
   return String(value);
+}
+
+function outputFormatFlag(args: ParsedArgs, fallback: OutputFormat): OutputFormat {
+  const value = stringFlag(args, 'format') ?? fallback;
+  if (!OUTPUT_FORMATS.includes(value as OutputFormat)) {
+    throw new Error(`--format must be one of: ${OUTPUT_FORMATS.join(', ')}`);
+  }
+  return value as OutputFormat;
+}
+
+function positiveIntegerFlag(args: ParsedArgs, name: string, fallback: number): number {
+  const value = Number(stringFlag(args, name) ?? fallback);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`--${name} must be a positive integer`);
+  }
+  return value;
 }
