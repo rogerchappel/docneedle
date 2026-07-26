@@ -10,14 +10,18 @@ Modern repos hide important instructions across `docs/`, `README.md`, `.github/`
 
 ## Install
 
+Install the current GitHub release:
+
 ```sh
-npm install -g docneedle
+npm install -g https://github.com/rogerchappel/docneedle/releases/download/v0.1.0/docneedle-0.1.0.tgz
 ```
 
-For local development from this repository:
+`docneedle` is distributed through [GitHub Releases](https://github.com/rogerchappel/docneedle/releases);
+it is not currently published to the npm registry. For source development from a clone of
+this repository instead:
 
 ```sh
-npm install
+npm ci
 npm run build
 node ./bin/docneedle.js --help
 ```
@@ -122,6 +126,7 @@ npm run check
 npm run build
 npm run smoke
 npm run package:smoke
+npm run package:install-smoke
 npm run release:check
 ```
 ## Contributing
