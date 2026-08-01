@@ -5,13 +5,21 @@ Thanks for helping make `docneedle` sharper. The project values small, reviewabl
 ## Development
 
 ```sh
-npm install
+npm ci
 npm test
 npm run check
 npm run build
 npm run smoke
 bash scripts/validate.sh
 ```
+
+`package.json` pins the development compiler and Node.js types to exact versions,
+and `package-lock.json` is the reproducible source of truth for installs. Use
+`npm ci` for normal development and CI. Dependabot proposes npm updates weekly;
+review those pull requests and run `npm run release:check` before accepting a
+toolchain update. When intentionally updating one of these tools locally, use
+`npm install --save-dev --save-exact <package>@<version>` and commit both package
+files together.
 
 ## Good first changes
 
