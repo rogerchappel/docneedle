@@ -13,6 +13,14 @@ interface ParsedArgs {
   flags: Map<string, string | boolean>;
 }
 
+type OptionKind = 'boolean' | 'value';
+
+const COMMAND_OPTIONS: Record<string, Readonly<Record<string, OptionKind>>> = {
+  inspect: { output: 'value', format: 'value', watch: 'boolean' },
+  search: { limit: 'value', json: 'boolean' },
+  pack: { query: 'value', output: 'value', format: 'value', limit: 'value' }
+};
+
 const OUTPUT_FORMATS = ['json', 'markdown'] as const;
 type OutputFormat = (typeof OUTPUT_FORMATS)[number];
 
@@ -69,6 +77,7 @@ export async function runCli(argv: string[], io = { stdout: process.stdout, stde
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const [command, ...rest] = argv;
+  const optionSchema = command ? COMMAND_OPTIONS[command] : undefined;
   const positionals: string[] = [];
   const flags = new Map<string, string | boolean>();
   for (let index = 0; index < rest.length; index += 1) {
@@ -80,6 +89,32 @@ export function parseArgs(argv: string[]): ParsedArgs {
     const [rawKey, inlineValue] = item.slice(2).split('=', 2);
     const key = rawKey.trim();
     if (!key) throw new Error('empty flag name');
+    const kind = optionSchema?.[key];
+    if (optionSchema && !kind) {
+      throw new Error(`unknown option --${key} for ${command}`);
+    }
+    if (flags.has(key)) {
+      throw new Error(`option --${key} may only be specified once`);
+    }
+    if (kind === 'boolean') {
+      if (inlineValue !== undefined || (rest[index + 1] !== undefined && !rest[index + 1].startsWith('--'))) {
+        throw new Error(`option --${key} does not take a value`);
+      }
+      flags.set(key, true);
+      continue;
+    }
+    if (kind === 'value') {
+      if (inlineValue !== undefined) {
+        if (inlineValue.length === 0) throw new Error(`option --${key} requires a value`);
+        flags.set(key, inlineValue);
+        continue;
+      }
+      const next = rest[index + 1];
+      if (!next || next.startsWith('--')) throw new Error(`option --${key} requires a value`);
+      flags.set(key, next);
+      index += 1;
+      continue;
+    }
     if (inlineValue !== undefined) {
       flags.set(key, inlineValue);
       continue;
