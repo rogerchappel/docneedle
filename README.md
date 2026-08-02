@@ -84,6 +84,10 @@ docneedle pack . --format json --output release-pack.json
 
 The `--format` option accepts `markdown` or `json`. Use `--limit <n>` with a positive integer to cap query hits in the pack.
 
+Options are command-specific and may be written as either `--name value` or
+`--name=value`. Unknown, repeated, missing-value, and valued boolean options
+are rejected before docneedle indexes files or writes output.
+
 ## Safety boundaries
 
 - Local-first: no hidden network calls, telemetry, accounts, scraping, or publishing.
