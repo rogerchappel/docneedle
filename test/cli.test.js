@@ -72,3 +72,58 @@ test('CLI accepts documented formats and integer limits', async () => {
   assert.equal(packMarkdown.code, 0, packMarkdown.stderr);
   assert.match(packMarkdown.stdout, /^# docneedle agent pack/m);
 });
+
+test('CLI accepts space-separated and inline values for every value option', async () => {
+  const inspect = await run(['inspect', fixture, '--format=markdown']);
+  assert.equal(inspect.code, 0, inspect.stderr);
+  assert.match(inspect.stdout, /^# docneedle manifest/m);
+
+  const search = await run(['search', fixture, 'escalation', '--limit=1', '--json']);
+  assert.equal(search.code, 0, search.stderr);
+  assert.equal(JSON.parse(search.stdout).hits.length, 1);
+
+  const pack = await run(['pack', fixture, '--query=onboarding', '--format', 'json', '--limit=1']);
+  assert.equal(pack.code, 0, pack.stderr);
+  assert.equal(JSON.parse(pack.stdout).query, 'onboarding');
+});
+
+test('CLI rejects options that do not belong to the selected command', async () => {
+  for (const args of [
+    ['inspect', fixture, '--json'],
+    ['search', fixture, 'escalation', '--output', 'result.json'],
+    ['pack', fixture, '--watch'],
+    ['search', fixture, 'escalation', '--bogus']
+  ]) {
+    const result = await run(args);
+    assert.equal(result.code, 1);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /unknown option .* for (inspect|search|pack)/);
+  }
+});
+
+test('CLI rejects duplicate options', async () => {
+  for (const args of [
+    ['inspect', fixture, '--format', 'json', '--format=markdown'],
+    ['search', fixture, 'escalation', '--json', '--json'],
+    ['pack', fixture, '--limit=1', '--limit', '2']
+  ]) {
+    const result = await run(args);
+    assert.equal(result.code, 1);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /option --\w+ may only be specified once/);
+  }
+});
+
+test('CLI rejects values for boolean options and missing values for value options', async () => {
+  for (const args of [
+    ['inspect', fixture, '--watch=true'],
+    ['search', fixture, 'escalation', '--json', 'true'],
+    ['pack', fixture, '--query'],
+    ['search', fixture, 'escalation', '--limit=']
+  ]) {
+    const result = await run(args);
+    assert.equal(result.code, 1);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /(does not take a value|requires a value)/);
+  }
+});
