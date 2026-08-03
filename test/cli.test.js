@@ -126,6 +126,21 @@ test('CLI watch rebuilds the requested output format at the original path', asyn
   }
 });
 
+test('CLI rejects watch without an output directory before watching for changes', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'docneedle-watch-no-output-'));
+  const document = path.join(temp, 'guide.md');
+  await fs.writeFile(document, '# Initial title\n');
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+
+  const result = await run(['inspect', temp, '--watch']);
+  assert.equal(result.code, 1);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /inspect --watch requires --output <dir>/);
+
+  await fs.writeFile(document, '# Changed after rejection\n');
+  assert.equal(result.stdout, '');
+});
+
 test('CLI accepts space-separated and inline values for every value option', async () => {
   const inspect = await run(['inspect', fixture, '--format=markdown']);
   assert.equal(inspect.code, 0, inspect.stderr);
