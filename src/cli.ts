@@ -134,6 +134,9 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
   const root = args.positionals[0];
   if (!root) throw new Error('inspect requires a directory');
   const output = stringFlag(args, 'output');
+  if (hasFlag(args, 'watch') && !output) {
+    throw new Error('inspect --watch requires --output <dir> so rebuilt manifests have a deterministic destination');
+  }
   const format = outputFormatFlag(args, 'json');
   const manifest = await buildManifest({ root });
   const render = (value: Awaited<ReturnType<typeof buildManifest>>) =>
