@@ -136,14 +136,15 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
   const output = stringFlag(args, 'output');
   const format = outputFormatFlag(args, 'json');
   const manifest = await buildManifest({ root });
-  const safeManifest = publicManifest(manifest);
-  const body = format === 'markdown' ? renderManifestMarkdown(manifest) : `${JSON.stringify(safeManifest, null, 2)}\n`;
+  const render = (value: Awaited<ReturnType<typeof buildManifest>>) =>
+    format === 'markdown' ? renderManifestMarkdown(value) : `${JSON.stringify(publicManifest(value), null, 2)}\n`;
+  const body = render(manifest);
+  const extension = format === 'markdown' ? 'md' : 'json';
+  const outputFile = output ? path.join(output, `docneedle-manifest.${extension}`) : undefined;
 
-  if (output) {
-    const extension = format === 'markdown' ? 'md' : 'json';
-    const file = path.join(output, `docneedle-manifest.${extension}`);
-    await writeFileEnsured(file, body);
-    stdout.write(`Indexed ${manifest.stats.documents} documents → ${file}\n`);
+  if (outputFile) {
+    await writeFileEnsured(outputFile, body);
+    stdout.write(`Indexed ${manifest.stats.documents} documents → ${outputFile}\n`);
   } else {
     stdout.write(body);
   }
@@ -156,8 +157,8 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
           stdout.write(`watch rebuild failed: ${error instanceof Error ? error.message : String(error)}\n`);
           return undefined;
         });
-        if (nextManifest && output) {
-          await writeFileEnsured(path.join(output, 'docneedle-manifest.json'), `${JSON.stringify(publicManifest(nextManifest), null, 2)}\n`);
+        if (nextManifest && outputFile) {
+          await writeFileEnsured(outputFile, render(nextManifest));
           stdout.write(`Rebuilt ${nextManifest.stats.documents} documents at ${new Date().toISOString()}\n`);
         }
       });

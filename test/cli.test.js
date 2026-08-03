@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 
 const fixture = new URL('fixtures/agent-workspace', import.meta.url).pathname;
@@ -13,6 +16,15 @@ function run(args) {
     child.stderr.on('data', (chunk) => { stderr += chunk; });
     child.on('close', (code) => resolve({ code, stdout, stderr }));
   });
+}
+
+async function waitFor(check, timeout = 5000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (await check()) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error('timed out waiting for watched manifest rebuild');
 }
 
 test('CLI search emits JSON hits for fixture query', async () => {
@@ -71,6 +83,47 @@ test('CLI accepts documented formats and integer limits', async () => {
   const packMarkdown = await run(['pack', fixture, '--format', 'markdown']);
   assert.equal(packMarkdown.code, 0, packMarkdown.stderr);
   assert.match(packMarkdown.stdout, /^# docneedle agent pack/m);
+});
+
+test('CLI watch rebuilds the requested output format at the original path', async (t) => {
+  for (const format of ['json', 'markdown']) {
+    await t.test(format, async (t) => {
+      const temp = await fs.mkdtemp(path.join(os.tmpdir(), `docneedle-watch-${format}-`));
+      const source = path.join(temp, 'source');
+      const output = path.join(temp, 'output');
+      const document = path.join(source, 'guide.md');
+      await fs.mkdir(source);
+      await fs.writeFile(document, '# Initial title\n');
+
+      const child = spawn(process.execPath, ['./bin/docneedle.js', 'inspect', source, '--output', output, '--format', format, '--watch'], {
+        cwd: new URL('..', import.meta.url).pathname
+      });
+      let stdout = '';
+      let stderr = '';
+      child.stdout.on('data', (chunk) => { stdout += chunk; });
+      child.stderr.on('data', (chunk) => { stderr += chunk; });
+      t.after(async () => {
+        child.kill();
+        await fs.rm(temp, { recursive: true, force: true });
+      });
+
+      const extension = format === 'markdown' ? 'md' : 'json';
+      const manifestPath = path.join(output, `docneedle-manifest.${extension}`);
+      await waitFor(() => stdout.includes('Watching for changes'));
+      await fs.writeFile(document, '# Rebuilt title\n');
+      await waitFor(() => stdout.includes('Rebuilt 1 documents'));
+
+      const body = await fs.readFile(manifestPath, 'utf8');
+      if (format === 'json') {
+        assert.equal(JSON.parse(body).documents[0].title, 'Rebuilt title');
+      } else {
+        assert.match(body, /^# docneedle manifest/m);
+        assert.match(body, /Rebuilt title/);
+      }
+      assert.deepEqual(await fs.readdir(output), [`docneedle-manifest.${extension}`]);
+      assert.equal(stderr, '');
+    });
+  }
 });
 
 test('CLI accepts space-separated and inline values for every value option', async () => {
