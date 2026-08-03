@@ -23,3 +23,15 @@ test('publicManifest removes raw content from exported manifest', async () => {
   assert.equal('content' in exported.documents[0], false);
   assert.equal(exported.documents[0].preview.length > 0, true);
 });
+
+test('buildManifest extracts ATX and both Setext heading levels', async () => {
+  const manifest = await buildManifest({ root: new URL('fixtures/headings', import.meta.url).pathname });
+  const documents = Object.fromEntries(manifest.documents.map((document) => [document.path, document]));
+
+  assert.deepEqual(documents['atx.md'].headings, ['ATX title', 'ATX section']);
+  assert.equal(documents['atx.md'].title, 'ATX title');
+  assert.deepEqual(documents['setext-h1.md'].headings, ['Setext title', 'Details']);
+  assert.equal(documents['setext-h1.md'].title, 'Setext title');
+  assert.deepEqual(documents['setext-h2.md'].headings, ['Secondary title', 'Next section']);
+  assert.equal(documents['setext-h2.md'].title, 'Secondary title');
+});

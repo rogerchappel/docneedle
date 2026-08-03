@@ -65,11 +65,14 @@ export function publicManifest(manifest: DocManifest): Omit<DocManifest, 'docume
 
 function extractHeadings(lines: string[]): string[] {
   const headings: string[] = [];
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
     const markdown = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
     if (markdown) headings.push(markdown[2].replace(/[#*`_]/g, '').trim());
-    const setext = /^(.+)\n[=-]+$/m.exec(line);
-    if (setext) headings.push(setext[1].trim());
+    if (/^\s*(?:=+|-+)\s*$/.test(lines[index + 1] ?? '') && line.trim()) {
+      headings.push(line.trim());
+      index += 1;
+    }
   }
   return [...new Set(headings)].slice(0, 12);
 }
