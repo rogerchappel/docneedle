@@ -12,9 +12,10 @@ export async function assertDirectory(root: string): Promise<string> {
   return resolved;
 }
 
-export async function collectFiles(root: string, extensions = DEFAULT_EXTENSIONS): Promise<string[]> {
+export async function collectFiles(root: string, extensions = DEFAULT_EXTENSIONS, excludePaths: string[] = []): Promise<string[]> {
   const resolvedRoot = await assertDirectory(root);
   const wanted = new Set(extensions.map((ext) => ext.toLowerCase()));
+  const excluded = new Set(excludePaths.map((file) => path.resolve(file)));
   const files: string[] = [];
 
   async function walk(dir: string): Promise<void> {
@@ -27,7 +28,8 @@ export async function collectFiles(root: string, extensions = DEFAULT_EXTENSIONS
       }
       if (!entry.isFile()) continue;
       const extension = path.extname(entry.name).toLowerCase();
-      if (wanted.has(extension)) files.push(path.join(dir, entry.name));
+      const file = path.join(dir, entry.name);
+      if (wanted.has(extension) && !excluded.has(file)) files.push(file);
     }
   }
 

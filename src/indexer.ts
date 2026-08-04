@@ -9,7 +9,7 @@ const WORD_RE = /[\p{L}\p{N}_-]+/gu;
 export async function buildManifest(options: IndexOptions): Promise<DocManifest> {
   const root = await assertDirectory(options.root);
   const maxBytes = options.maxBytes ?? 1_000_000;
-  const files = await collectFiles(root, options.includeExtensions ?? DEFAULT_EXTENSIONS);
+  const files = await collectFiles(root, options.includeExtensions ?? DEFAULT_EXTENSIONS, options.excludePaths);
   const documents: IndexedDocument[] = [];
 
   for (const file of files) {

@@ -4,6 +4,7 @@ export interface IndexOptions {
   root: string;
   includeExtensions?: string[];
   maxBytes?: number;
+  excludePaths?: string[];
 }
 
 export interface IndexedDocument {
