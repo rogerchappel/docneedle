@@ -138,13 +138,13 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
     throw new Error('inspect --watch requires --output <dir> so rebuilt manifests have a deterministic destination');
   }
   const format = outputFormatFlag(args, 'json');
-  const manifest = await buildManifest({ root });
+  const extension = format === 'markdown' ? 'md' : 'json';
+  const outputFile = output ? path.resolve(output, `docneedle-manifest.${extension}`) : undefined;
+  const build = () => buildManifest({ root, excludePaths: outputFile ? [outputFile] : [] });
+  const manifest = await build();
   const render = (value: Awaited<ReturnType<typeof buildManifest>>) =>
     format === 'markdown' ? renderManifestMarkdown(value) : `${JSON.stringify(publicManifest(value), null, 2)}\n`;
   const body = render(manifest);
-  const extension = format === 'markdown' ? 'md' : 'json';
-  const outputFile = output ? path.join(output, `docneedle-manifest.${extension}`) : undefined;
-
   if (outputFile) {
     await writeFileEnsured(outputFile, body);
     stdout.write(`Indexed ${manifest.stats.documents} documents → ${outputFile}\n`);
@@ -155,18 +155,32 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
   if (hasFlag(args, 'watch')) {
     stdout.write('Watching for changes. Press Ctrl+C to stop.\n');
     await new Promise<void>(() => {
-      watch(manifest.root, { recursive: true }, async () => {
-        const nextManifest = await buildManifest({ root }).catch((error: unknown) => {
-          stdout.write(`watch rebuild failed: ${error instanceof Error ? error.message : String(error)}\n`);
-          return undefined;
-        });
-        if (nextManifest && outputFile) {
-          await writeFileEnsured(outputFile, render(nextManifest));
-          stdout.write(`Rebuilt ${nextManifest.stats.documents} documents at ${new Date().toISOString()}\n`);
-        }
+      let rebuildTimer: NodeJS.Timeout | undefined;
+      let sourceSignature = manifestSignature(manifest);
+      watch(manifest.root, { recursive: true }, (_event, filename) => {
+        const changedPath = filename ? path.resolve(manifest.root, filename.toString()) : undefined;
+        if (changedPath === outputFile) return;
+        if (rebuildTimer) clearTimeout(rebuildTimer);
+        rebuildTimer = setTimeout(async () => {
+          const nextManifest = await build().catch((error: unknown) => {
+            stdout.write(`watch rebuild failed: ${error instanceof Error ? error.message : String(error)}\n`);
+            return undefined;
+          });
+          if (nextManifest && outputFile) {
+            const nextSignature = manifestSignature(nextManifest);
+            if (nextSignature === sourceSignature) return;
+            sourceSignature = nextSignature;
+            await writeFileEnsured(outputFile, render(nextManifest));
+            stdout.write(`Rebuilt ${nextManifest.stats.documents} documents at ${new Date().toISOString()}\n`);
+          }
+        }, 75);
       });
     });
   }
+}
+
+function manifestSignature(manifest: Awaited<ReturnType<typeof buildManifest>>): string {
+  return JSON.stringify({ stats: manifest.stats, documents: manifest.documents });
 }
 
 async function search(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<void> {
