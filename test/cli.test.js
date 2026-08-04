@@ -89,14 +89,13 @@ test('CLI watch rebuilds the requested output format at the original path', asyn
   for (const format of ['json', 'markdown']) {
     await t.test(format, async (t) => {
       const temp = await fs.mkdtemp(path.join(os.tmpdir(), `docneedle-watch-${format}-`));
-      const source = path.join(temp, 'source');
-      const output = path.join(temp, 'output');
-      const document = path.join(source, 'guide.md');
-      await fs.mkdir(source);
+      const output = path.join(temp, '.docneedle', 'nested');
+      const outputArgument = format === 'json' ? path.join('.docneedle', '.', 'nested') : output;
+      const document = path.join(temp, 'guide.md');
       await fs.writeFile(document, '# Initial title\n');
 
-      const child = spawn(process.execPath, ['./bin/docneedle.js', 'inspect', source, '--output', output, '--format', format, '--watch'], {
-        cwd: new URL('..', import.meta.url).pathname
+      const child = spawn(process.execPath, [new URL('../bin/docneedle.js', import.meta.url).pathname, 'inspect', '.', '--output', outputArgument, '--format', format, '--watch'], {
+        cwd: temp
       });
       let stdout = '';
       let stderr = '';
@@ -112,6 +111,7 @@ test('CLI watch rebuilds the requested output format at the original path', asyn
       await waitFor(() => stdout.includes('Watching for changes'));
       await fs.writeFile(document, '# Rebuilt title\n');
       await waitFor(() => stdout.includes('Rebuilt 1 documents'));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       const body = await fs.readFile(manifestPath, 'utf8');
       if (format === 'json') {
@@ -121,6 +121,7 @@ test('CLI watch rebuilds the requested output format at the original path', asyn
         assert.match(body, /Rebuilt title/);
       }
       assert.deepEqual(await fs.readdir(output), [`docneedle-manifest.${extension}`]);
+      assert.equal(stdout.match(/Rebuilt 1 documents/g)?.length, 1, stdout);
       assert.equal(stderr, '');
     });
   }
