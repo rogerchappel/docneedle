@@ -60,7 +60,7 @@ docneedle inspect ./test/fixtures/agent-workspace --format markdown
 docneedle inspect ./docs --output .docneedle
 ```
 
-Use `--watch` with `--output <dir>` to rebuild the manifest when files change. Watch mode rejects commands without `--output` because every rebuild needs a deterministic file destination. Each rebuild preserves the selected `--format` and rewrites the same `docneedle-manifest.json` or `docneedle-manifest.md` file initially created under `--output`.
+Use `--watch` with `--output <dir>` to rebuild the manifest when source files change. Watch mode rejects commands without `--output` because every rebuild needs a deterministic file destination. Each rebuild preserves the selected `--format` and rewrites the same `docneedle-manifest.json` or `docneedle-manifest.md` file initially created under `--output`. That generated manifest is excluded from the index and its writes do not trigger another rebuild, including when the normalized output path is inside the watched root.
 The `--format` option accepts `json` or `markdown`.
 
 ### `search <dir> <query...>`
