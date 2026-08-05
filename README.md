@@ -84,6 +84,8 @@ docneedle pack . --format json --output release-pack.json
 
 The `--format` option accepts `markdown` or `json`. Use `--limit <n>` with a positive integer to cap query hits in the pack.
 
+When `--output` points inside the indexed directory, `docneedle` excludes that exact generated file from the pack's document map and query hits. This keeps repeated runs stable even when the output already exists; other files remain indexed normally. Outputs outside the indexed directory are unaffected.
+
 Options are command-specific and may be written as either `--name value` or
 `--name=value`. Unknown, repeated, missing-value, and valued boolean options
 are rejected before docneedle indexes files or writes output.
@@ -102,7 +104,11 @@ import { buildManifest, searchManifest, buildAgentPack } from 'docneedle';
 
 const manifest = await buildManifest({ root: './docs' });
 const result = searchManifest(manifest, { query: 'onboarding', limit: 3 });
-const pack = await buildAgentPack({ root: '.', query: 'release escalation' });
+const pack = await buildAgentPack({
+  root: '.',
+  query: 'release escalation',
+  excludePaths: ['./agent-pack.md']
+});
 ```
 
 ## Source note
