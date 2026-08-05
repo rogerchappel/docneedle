@@ -198,12 +198,13 @@ async function pack(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<void>
   if (!root) throw new Error('pack requires a directory');
   const query = stringFlag(args, 'query');
   const output = stringFlag(args, 'output');
+  const outputFile = output ? path.resolve(output) : undefined;
   const format = outputFormatFlag(args, output?.endsWith('.json') ? 'json' : 'markdown');
   const limit = positiveIntegerFlag(args, 'limit', 8);
-  const packData = await buildAgentPack({ root, query, limit });
+  const packData = await buildAgentPack({ root, query, limit, excludePaths: outputFile ? [outputFile] : [] });
   const body = format === 'json' ? `${JSON.stringify(packData, null, 2)}\n` : renderPackMarkdown(packData);
-  if (output) {
-    await writeFileEnsured(output, body);
+  if (outputFile) {
+    await writeFileEnsured(outputFile, body);
     stdout.write(`Wrote agent pack → ${output}\n`);
   } else {
     stdout.write(body);
