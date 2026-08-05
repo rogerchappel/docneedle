@@ -85,6 +85,51 @@ test('CLI accepts documented formats and integer limits', async () => {
   assert.match(packMarkdown.stdout, /^# docneedle agent pack/m);
 });
 
+test('CLI pack excludes an in-root output on first and repeated runs', async (t) => {
+  for (const format of ['markdown', 'json']) {
+    await t.test(format, async () => {
+      const temp = await fs.mkdtemp(path.join(os.tmpdir(), `docneedle-pack-${format}-`));
+      t.after(() => fs.rm(temp, { recursive: true, force: true }));
+      await fs.writeFile(path.join(temp, 'source.md'), '# Source\nneedle source\n');
+
+      const filename = format === 'json' ? 'pack.json' : 'pack.md';
+      const output = path.join(temp, 'generated', filename);
+      await fs.mkdir(path.dirname(output), { recursive: true });
+      await fs.writeFile(output, 'needle stale output\n');
+      const normalizedArgument = path.join(temp, '.', 'generated', '..', 'generated', filename);
+
+      for (let invocation = 0; invocation < 2; invocation += 1) {
+        const result = await run(['pack', temp, '--query', 'needle', '--format', format, '--output', normalizedArgument]);
+        assert.equal(result.code, 0, result.stderr);
+        const body = await fs.readFile(output, 'utf8');
+        const pack = format === 'json' ? JSON.parse(body) : body;
+        if (format === 'json') {
+          assert.deepEqual(pack.manifest.documents.map((document) => document.path), ['source.md']);
+          assert.deepEqual(pack.hits.map((hit) => hit.path), ['source.md']);
+        } else {
+          assert.doesNotMatch(pack, /generated\/pack\.md/);
+          assert.match(pack, /source\.md/);
+        }
+      }
+    });
+  }
+});
+
+test('CLI pack continues to index an output located outside the root', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'docneedle-pack-outside-'));
+  const root = path.join(temp, 'workspace');
+  const output = path.join(temp, 'pack.json');
+  await fs.mkdir(root);
+  await fs.writeFile(path.join(root, 'source.md'), '# Source\nneedle source\n');
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+
+  const result = await run(['pack', root, '--query', 'needle', '--format', 'json', '--output', output]);
+  assert.equal(result.code, 0, result.stderr);
+  const pack = JSON.parse(await fs.readFile(output, 'utf8'));
+  assert.deepEqual(pack.manifest.documents.map((document) => document.path), ['source.md']);
+  assert.deepEqual(pack.hits.map((hit) => hit.path), ['source.md']);
+});
+
 test('CLI watch rebuilds the requested output format at the original path', async (t) => {
   for (const format of ['json', 'markdown']) {
     await t.test(format, async (t) => {
