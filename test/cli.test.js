@@ -34,6 +34,20 @@ test('CLI search emits JSON hits for fixture query', async () => {
   assert.equal(parsed.hits[0].path, 'docs/runbook.md');
 });
 
+test('CLI search matches whole tokens and normalizes duplicate terms', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'docneedle-cli-token-search-'));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  await fs.writeFile(path.join(temp, 'guide.md'), '# Guide\neducation release\n');
+
+  const substring = await run(['search', temp, 'cat', '--json']);
+  const single = await run(['search', temp, 'release', '--json']);
+  const duplicate = await run(['search', temp, 'release', 'release', '--json']);
+  assert.equal(substring.code, 0, substring.stderr);
+  assert.equal(JSON.parse(substring.stdout).hits.length, 0);
+  assert.equal(JSON.parse(duplicate.stdout).hits[0].score, JSON.parse(single.stdout).hits[0].score);
+  assert.match(JSON.parse(single.stdout).hits[0].snippet, /education release/);
+});
+
 test('CLI help is friendly', async () => {
   const result = await run(['--help']);
   assert.equal(result.code, 0);

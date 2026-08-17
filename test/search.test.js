@@ -11,6 +11,26 @@ test('tokenize normalizes useful query terms', () => {
   assert.deepEqual(tokenize('Release escalation!'), ['release', 'escalation']);
 });
 
+test('search uses whole tokens and ignores duplicate query terms', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'docneedle-token-search-'));
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+  await fs.writeFile(path.join(temp, 'guide.md'), '# Guide\neducation release\n');
+  const manifest = await buildManifest({ root: temp });
+  const single = searchManifest(manifest, { query: 'release' });
+  const duplicate = searchManifest(manifest, { query: 'release release' });
+
+  assert.deepEqual(duplicate.hits, single.hits);
+  assert.equal(searchManifest(manifest, { query: 'cat' }).hits.length, 0);
+});
+
+test('search ranks multi-term token matches and selects a matching snippet', async () => {
+  const manifest = await buildManifest({ root: fixture });
+  const result = searchManifest(manifest, { query: 'fixture smoke' });
+
+  assert.equal(result.hits[0].path, 'docs/runbook.md');
+  assert.match(result.hits[0].snippet, /fixture smoke fails/);
+});
+
 test('searchManifest returns scored snippets and paths', async () => {
   const manifest = await buildManifest({ root: fixture });
   const result = searchManifest(manifest, { query: 'escalation smoke', limit: 2 });
