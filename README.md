@@ -65,7 +65,10 @@ The `--format` option accepts `json` or `markdown`.
 
 ### `search <dir> <query...>`
 
-Builds an in-memory index and prints ranked snippets.
+Builds an in-memory index and prints ranked snippets. Search terms match complete
+Unicode letter/number/underscore/hyphen tokens, not substrings inside longer
+words. Repeating a query term does not increase its score. Results are ranked by
+score, then path, so identical input produces deterministic ordering.
 
 ```sh
 docneedle search ./docs "branch protection" --json
