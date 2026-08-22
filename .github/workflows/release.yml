@@ -46,6 +46,9 @@ jobs:
       - name: Local release check
         run: npm run release:check
 
+      - name: Verify release tag matches package version
+        run: npm run release:tag-check -- "${GITHUB_REF_NAME}"
+
       - name: Pack npm artifact
         run: npm pack
 
