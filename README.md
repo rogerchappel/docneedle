@@ -142,6 +142,12 @@ npm run package:smoke
 npm run package:install-smoke
 npm run release:check
 ```
+
+GitHub releases must use the exact stable tag `v<package.json version>` (for example,
+`v0.1.0` for version `0.1.0`). The release workflow runs
+`npm run release:tag-check -- "$GITHUB_REF_NAME"` before packing or creating a
+release, so missing, malformed, prerelease, and mismatched tags fail with an
+actionable error.
 ## Contributing
 
 Small, boring, well-tested changes are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
