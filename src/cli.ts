@@ -140,7 +140,10 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
   const format = outputFormatFlag(args, 'json');
   const extension = format === 'markdown' ? 'md' : 'json';
   const outputFile = output ? path.resolve(output, `docneedle-manifest.${extension}`) : undefined;
-  const build = () => buildManifest({ root, excludePaths: outputFile ? [outputFile] : [] });
+  const outputFiles = output
+    ? ['json', 'md'].map((candidateExtension) => path.resolve(output, `docneedle-manifest.${candidateExtension}`))
+    : [];
+  const build = () => buildManifest({ root, excludePaths: outputFiles });
   const manifest = await build();
   const render = (value: Awaited<ReturnType<typeof buildManifest>>) =>
     format === 'markdown' ? renderManifestMarkdown(value) : `${JSON.stringify(publicManifest(value), null, 2)}\n`;
@@ -159,7 +162,7 @@ async function inspect(args: ParsedArgs, stdout: NodeJS.WriteStream): Promise<vo
       let sourceSignature = manifestSignature(manifest);
       watch(manifest.root, { recursive: true }, (_event, filename) => {
         const changedPath = filename ? path.resolve(manifest.root, filename.toString()) : undefined;
-        if (changedPath === outputFile) return;
+        if (changedPath && outputFiles.includes(changedPath)) return;
         if (rebuildTimer) clearTimeout(rebuildTimer);
         rebuildTimer = setTimeout(async () => {
           const nextManifest = await build().catch((error: unknown) => {
