@@ -144,6 +144,25 @@ test('CLI pack continues to index an output located outside the root', async (t)
   assert.deepEqual(pack.hits.map((hit) => hit.path), ['source.md']);
 });
 
+test('CLI inspect excludes every manifest format across alternating runs', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'docneedle-inspect-formats-'));
+  const output = path.join(temp, 'generated');
+  await fs.writeFile(path.join(temp, 'source.md'), '# Source\nreal source\n');
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+
+  for (const format of ['json', 'markdown', 'json', 'markdown']) {
+    const result = await run(['inspect', temp, '--output', output, '--format', format]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Indexed 1 documents/);
+
+    const jsonPath = path.join(output, 'docneedle-manifest.json');
+    if (format === 'json') {
+      const manifest = JSON.parse(await fs.readFile(jsonPath, 'utf8'));
+      assert.deepEqual(manifest.documents.map((document) => document.path), ['source.md']);
+    }
+  }
+});
+
 test('CLI watch rebuilds the requested output format at the original path', async (t) => {
   for (const format of ['json', 'markdown']) {
     await t.test(format, async (t) => {
@@ -168,6 +187,8 @@ test('CLI watch rebuilds the requested output format at the original path', asyn
       const extension = format === 'markdown' ? 'md' : 'json';
       const manifestPath = path.join(output, `docneedle-manifest.${extension}`);
       await waitFor(() => stdout.includes('Watching for changes'));
+      const alternateExtension = format === 'markdown' ? 'json' : 'md';
+      await fs.writeFile(path.join(output, `docneedle-manifest.${alternateExtension}`), '# Stale generated manifest\n');
       await fs.writeFile(document, '# Rebuilt title\n');
       await waitFor(() => stdout.includes('Rebuilt 1 documents'));
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -179,7 +200,7 @@ test('CLI watch rebuilds the requested output format at the original path', asyn
         assert.match(body, /^# docneedle manifest/m);
         assert.match(body, /Rebuilt title/);
       }
-      assert.deepEqual(await fs.readdir(output), [`docneedle-manifest.${extension}`]);
+      assert.deepEqual((await fs.readdir(output)).sort(), [`docneedle-manifest.${alternateExtension}`, `docneedle-manifest.${extension}`].sort());
       assert.equal(stdout.match(/Rebuilt 1 documents/g)?.length, 1, stdout);
       assert.equal(stderr, '');
     });
