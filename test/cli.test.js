@@ -236,6 +236,30 @@ test('CLI accepts space-separated and inline values for every value option', asy
   assert.equal(JSON.parse(pack.stdout).query, 'onboarding');
 });
 
+test('CLI preserves equals signs in inline option values', async (t) => {
+  const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'docneedle-cli-inline-equals-'));
+  const packOutput = path.join(temp, 'pack=a=b.json');
+  const inspectOutput = path.join(temp, 'manifest=a=b');
+  t.after(() => fs.rm(temp, { recursive: true, force: true }));
+
+  const pack = await run([
+    'pack',
+    fixture,
+    '--query=a=b',
+    '--format=json',
+    `--output=${packOutput}`
+  ]);
+  assert.equal(pack.code, 0, pack.stderr);
+  assert.equal(JSON.parse(await fs.readFile(packOutput, 'utf8')).query, 'a=b');
+
+  const inspect = await run(['inspect', fixture, `--output=${inspectOutput}`]);
+  assert.equal(inspect.code, 0, inspect.stderr);
+  assert.ok(inspect.stdout.includes(`→ ${path.join(inspectOutput, 'docneedle-manifest.json')}`));
+  assert.ok(
+    JSON.parse(await fs.readFile(path.join(inspectOutput, 'docneedle-manifest.json'), 'utf8')).stats.documents > 0
+  );
+});
+
 test('CLI rejects options that do not belong to the selected command', async () => {
   for (const args of [
     ['inspect', fixture, '--json'],
