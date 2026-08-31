@@ -86,7 +86,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
       positionals.push(item);
       continue;
     }
-    const [rawKey, inlineValue] = item.slice(2).split('=', 2);
+    const option = item.slice(2);
+    const equalsIndex = option.indexOf('=');
+    const rawKey = equalsIndex === -1 ? option : option.slice(0, equalsIndex);
+    const inlineValue = equalsIndex === -1 ? undefined : option.slice(equalsIndex + 1);
     const key = rawKey.trim();
     if (!key) throw new Error('empty flag name');
     const kind = optionSchema?.[key];
