@@ -34,4 +34,6 @@ test('buildManifest extracts ATX and both Setext heading levels', async () => {
   assert.equal(documents['setext-h1.md'].title, 'Setext title');
   assert.deepEqual(documents['setext-h2.md'].headings, ['Secondary title', 'Next section']);
   assert.equal(documents['setext-h2.md'].title, 'Secondary title');
+  assert.deepEqual(documents['front-matter.md'].headings, ['Actual Heading', 'Deployment notes']);
+  assert.equal(documents['front-matter.md'].title, 'Actual Heading');
 });
