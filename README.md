@@ -55,6 +55,7 @@ It writes a manifest, search transcript, and source-linked agent pack under `.tm
 
 Scans Markdown-like local files (`.md`, `.mdx`, `.txt`, `.rst`, `.adoc`) and writes a manifest.
 Document titles come from the first ATX or Setext heading. A YAML front-matter block delimited by `---` at the start of a document is excluded from heading and title extraction.
+ATX- and Setext-looking text inside backtick or tilde fenced code blocks is also excluded, so executable examples cannot become document titles.
 
 ```sh
 docneedle inspect ./test/fixtures/agent-workspace --format markdown
