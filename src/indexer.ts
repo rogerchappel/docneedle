@@ -65,6 +65,7 @@ export function publicManifest(manifest: DocManifest): Omit<DocManifest, 'docume
 
 function extractHeadings(lines: string[]): string[] {
   const headings: string[] = [];
+  let fence: { marker: '`' | '~'; length: number } | undefined;
   let firstContentLine = 0;
   if (lines[0]?.trim() === '---') {
     const closingDelimiter = lines.findIndex((line, index) => index > 0 && line.trim() === '---');
@@ -73,6 +74,20 @@ function extractHeadings(lines: string[]): string[] {
 
   for (let index = firstContentLine; index < lines.length; index += 1) {
     const line = lines[index];
+    if (fence) {
+      const closingFence = /^ {0,3}(`{3,}|~{3,})[ \t]*$/.exec(line);
+      if (closingFence?.[1]?.[0] === fence.marker && closingFence[1].length >= fence.length) {
+        fence = undefined;
+      }
+      continue;
+    }
+
+    const openingFence = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+    if (openingFence && (openingFence[1][0] === '~' || !openingFence[2].includes('`'))) {
+      fence = { marker: openingFence[1][0] as '`' | '~', length: openingFence[1].length };
+      continue;
+    }
+
     const markdown = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
     if (markdown) headings.push(markdown[2].replace(/[#*`_]/g, '').trim());
     if (/^\s*(?:=+|-+)\s*$/.test(lines[index + 1] ?? '') && line.trim()) {
