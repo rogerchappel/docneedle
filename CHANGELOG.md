@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Exclude heading-like content inside backtick and tilde fenced code blocks from document headings and titles.
+
 ## 0.1.0
 
 - Initial local-first TypeScript CLI/library MVP.
