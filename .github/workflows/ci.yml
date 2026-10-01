@@ -40,5 +40,11 @@ jobs:
       - name: Smoke
         run: npm run smoke
 
+      - name: Verify package contents
+        run: npm run package:smoke
+
+      - name: Verify installed package
+        run: npm run package:install-smoke
+
       - name: Validate repository
         run: bash scripts/validate.sh
